@@ -1,0 +1,133 @@
+/**
+ * BoxFish.js
+ *
+ * jQuery plugin to create dynamic resizing columnar boxes.
+ *
+ * @version: 0.1
+ * @authors: Jeremy Harris
+ * @license: MIT
+ */
+
+
+
+(function ($) {
+
+
+        $.fn.boxfish = function( options ) {
+
+            // Define settings
+            var settings = $.extend({
+                columns: 1,
+                breakpoints: [
+                   [1360, 6],
+                   [1280, 6],
+                   [1024, 5],
+                   [768, 5],
+                   [480, 2],
+                   [300, 1]
+                ]
+            }, options );
+
+            //console.log(settings.breakpoints);
+
+            // Initialize values
+            var boxes               = $(this);
+            var boxCount            = boxes.length;
+            var container           = boxes.parent();
+            var containerWidth      = getContainerWidth();
+            var maxWidth            = getMaxBoxWidth();
+            var horizontalMargin    = 0;
+            var horizontalPadding   = 0;
+
+            // Add boxfish classes
+            boxes.addClass('boxfish-box');
+            container.addClass('boxfish-container');
+
+            // Determine width of boxes in parent        
+            arrangeBoxes();
+            $(window).on('resize', function() {
+                containerWidth = getContainerWidth();
+                arrangeBoxes();
+            });
+
+            /**
+             * Set box widths
+             */
+            function arrangeBoxes() {
+                // Calculate required values
+                var firstBox = boxes.first();
+                horizontalMargin = parseInt(firstBox.css('margin-left'), 10) + parseInt(firstBox.css('margin-right'), 10);
+                horizontalPadding = parseInt(firstBox.css('padding-left'), 10) + parseInt(firstBox.css('padding-right'), 10);
+                maxWidth = getMaxBoxWidth();
+                boxes.each(function(index, element) {
+                    $(this).width(maxWidth - (horizontalMargin + horizontalPadding + 2));
+                });
+            }
+
+            /**
+             * Calculate container (parent) width
+             */
+            function getContainerWidth() {
+                return container.width();
+            }
+
+            /**
+             * Calculate maximum box width
+             *
+             * @private
+             */
+            function getMaxBoxWidth() {
+                var match = [0, 0];
+                var columns = settings.columns;
+                for (i = 0; i < settings.breakpoints.length; i++) {
+                    if (settings.breakpoints[i][0] < containerWidth && settings.breakpoints[i][0] > match[0]) {
+                        match = settings.breakpoints[i];
+                    }
+                }
+                if (match[1] > 0)
+                    columns = match[1];
+
+                return containerWidth / columns;
+            }
+
+            /**
+             * Add breakpoint to column calculations
+             *
+             * @param integer   Pixel width to break on
+             * @param integer   Columns to use after break
+             */
+            this.addBreakpoint = function(pixels, columns) {
+
+                // Format parameters
+                pixels = parseInt(pixels, 10);
+                columns = parseInt(columns, 10);
+
+                // Variable to determine if matching breakpoint (pixels) was found in interation
+                var hasMatch = false;
+
+                // If already set, then update columns
+                for (i = 0; i < settings.breakpoints.length; i++) {
+                    if (settings.breakpoints[i][0] == pixels) {
+                        settings.breakpoints[i][1] = columns;
+                        hasMatch = true;
+                        break;
+                    }
+                }
+
+                // If no match was found, set custom breakpoint
+                if ( ! hasMatch) {
+                    settings.breakpoints[settings.breakpoints.length] = [pixels, columns];
+                }
+
+                // Rearrange boxes
+                arrangeBoxes();
+
+                return this;
+            };
+
+            return this;
+        };
+
+    }( jQuery ));
+
+

@@ -1,0 +1,891 @@
+﻿$(document).ready(function () {
+
+    var amount = $("#CommonHiddenBal").text().split(",");
+    var GenWalletBal = amount[0];
+    var VouchBal = amount[1];
+    $("#BalanceAmount").text("Rs." + GenWalletBal + "/-");
+
+    $("#ProccedLoadCash").click(function () {
+        $(".FinalLoadCashDiv").slideToggle();
+        var SignTxt = $("#ProccedLoadCash div #ToggleTxt").text();
+        if (SignTxt == "+") {
+            $("#ProccedLoadCash div #ToggleTxt").text("-");
+        }
+        else {
+            $("#ProccedLoadCash div #ToggleTxt").text("+");
+        }
+    });
+
+    $(".popupWindowCloseBtn").click(function () {
+        $(".popupWindow").hide();
+
+        $(".popupWindowBackground").hide();
+    });
+
+    var referrer = document.referrer;
+
+    $.urlParam = function (name) {
+        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+        if (results == null) {
+            return null;
+        }
+        else {
+            return results[1] || 0;
+        }
+    }
+    var cityname = $.urlParam('city');
+    var returnurl = $.urlParam('ReturnUrl');
+
+    $("#txtamount").on("keypress keyup blur", function (event) {
+        $(this).val($(this).val().replace(/[^\d].+/, ""));
+        if ((event.which < 48 || event.which > 57)) {
+            event.preventDefault();
+        }
+    });
+
+    //--------------Helpguru Wallet Start------------//////    //code: 001: start- for last five transaction details-----------
+    window.onload = function transaction() {
+        $(".orderSummary .datarow").remove();
+        $("#voucherb").css("display", "none");
+        if ($("#hfconsumerid").val() != null) {
+            var Register =
+                             {
+                                 con_id: $("#hfconsumerid").val(),
+                             }
+            try {
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/Account/LastFiveTransaction",
+                    data: JSON.stringify(Register),
+                    dataType: "json",
+                    success: function (data) {
+                        $.each(data, function (key, value) {
+                            if (value.type == null) {
+                                $(".orderSummary .datarow").remove();
+                                $("#orderSummary").append("<tr  class='datarow'><td colspan='4' class='TableBodyCol'><center><b>No transaction</b></center></td> </tr>");
+                            }
+                            else {
+
+                                $("#orderSummary").append("<tr  class='datarow'><td class='TableBodyCol'><span>" + value.type + "</span></td>   <td class='TableBodyCol'><span>" + value.amount + "</span></td>  <td class='TableBodyCol'><span>" + value.refID + "</span></td>  <td class='TableBodyCol'><span>" + value.creationTime + "</span></td> </tr>");
+                            }
+                        });
+                        $("#ProgressIcon").hide();
+                    },
+                    error: function (result) {
+                    }
+                });
+            }
+            catch (err)
+            { }
+        }
+    }
+
+    $("#udiopay").click(function () {
+        try {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/User/InsTransDetails",
+                data: {},
+                dataType: "json",
+                success: function (data) {
+                    $.each(data, function (key, value) {
+                        alert("success");
+                        if (value.type == null) {
+                            $(".orderSummary .datarow").remove();
+                            $("#orderSummary").append("<tr  class='datarow'><td colspan='4' class='TableBodyCol'><center><b>No transaction</b></center></td> </tr>");
+                        }
+                        else {
+                            $("#orderSummary").append("<tr  class='datarow'><td class='TableBodyCol'><span>" + value.type + "</span></td>   <td class='TableBodyCol'><span>" + value.amount + "</span></td>  <td class='TableBodyCol'><span>" + value.refID + "</span></td>  <td class='TableBodyCol'><span>" + value.creationTime + "</span></td> </tr>");
+                        }
+                    });
+                    $("#ProgressIcon").hide();
+                },
+                error: function (result) {
+                    alert("errr hai");
+                }
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    //code: 001: end- for last five transaction details-----------//-------------------------//////////
+    $("#Register").click(function () {
+        $(".error").empty();
+        if ($("#FirstName").val() == '') {
+            $("#FirstName").parents("td").find(".error").append('<br/>' + '<span class="error">Enter your first name</span>');
+            return false;
+        }
+        if ($("#LastName").val() == '') {
+            $("#LastName").parents("td").find(".error").append('<br/>' + '<span class="error">Enter your last name</span>');
+            return false;
+        }
+        $(".error").empty();
+        $("#EmailId").empty();
+        $("#EmailId span").empty();
+        var hasError = false;
+        var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+        var emailaddressVal = $("#EmailId").val();
+        if (emailaddressVal == '') {
+            $("#EmailId").parents("td").find(".error").append('<br/>' + '<span class="error">Enter email address.</span>');
+            hasError = true;
+        }
+        else if (!emailReg.test(emailaddressVal)) {
+            $("#EmailId").parents("td").find(".error").append('<br/>' + '<span class="error">Enter a valid email address.</span>');
+            hasError = true;
+        }
+        if (hasError == true) { return false; }
+
+        var mob = /^[1-9]{1}[0-9]{9}$/;
+        if (mob.test($.trim($("#Mobile").val())) == false) {
+            $("#Mobile").parents("td").find(".error").append('<br/>' + '<span class="error">Enter a valid mobile number.</span>');
+            return false;
+        }
+        if ($("#Password").val() == '') {
+            $("#Password").parents("td").find(".error").append('<br/>' + '<span class="error">Enter Password </span>');
+            return true;
+        }
+        if ($("#ConfirmPassword").val() == '') {
+            $("#ConfirmPassword").parents("td").find(".error").append('<br/>' + '<span class="error">Enter Confirm Password</span>');
+            return true;
+        }
+        if ($("#Password").val() != $("#ConfirmPassword").val()) {
+            alert("Password Not Matched");
+            $("#ConfirmPassword").parents("td").find(".error").append('<br/>' + '<span class="error">Your password Does not match </span>');
+            return true;
+        }
+        var isenabled = "true";
+        var Phone = $('#Mobile').val();
+        var username = 'abc';
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: "/Account/ConfirmOTP",
+            data: "{Phone:'" + Phone + "',email:'" + emailaddressVal + "',IsEnabled:'" + isenabled + "',username:'" + username + "'}",
+            dataType: "json",
+            success: function (data) {
+                if (data.Success > 0) {
+                    $("#OptionRegister").fadeOut();
+                    $("#OtpLogin").fadeIn();
+                }
+                else {
+                    alert("Email or Mobile Already exist.");
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+            }
+        });
+    });
+
+    //-----------------------//for activate wallet---------
+    $("#btnactivatewallet").click(function () {
+        $(".error").empty();
+        try {
+            var Register =
+                         {
+                             consumer_id: $("#hfconsumerid").val(),
+                         }
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Account/GenerateOTPWallet",
+                data: JSON.stringify(Register),
+                dataType: "json",
+                success: function (data) {
+                    $("#walletDashboard").fadeOut();
+                    $("#OtpLogin").fadeIn();
+                },
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    //--------------------//get last five transaction
+    $("#btnlastfivetransaction").click(function () {
+        $(".WalletButton").fadeIn();
+        $("#BalanceAmount").text("Rs." + GenWalletBal + "/-");
+        $("#balancetype").text("General Wallet Balance");
+        $(".error").empty();
+        $("#ProccedLoadCash").fadeIn();
+        $(".orderSummary .datarow").remove();
+        $("#ProgressIcon").show();
+        var Register =
+                         {
+                             con_id: $("#hfconsumerid").val(),
+                         }
+        try {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Account/LastFiveTransaction",
+                data: JSON.stringify(Register),
+                dataType: "json",
+                success: function (data) {
+                    $("#transactionDiv").fadeIn();
+                    $("#VoucherDiv").fadeOut();
+                    $.each(data, function (key, value) {
+                        if (value.type == null) {
+                            $(".orderSummary .datarow").remove();
+                            $("#orderSummary").append("<tr  class='datarow'><td colspan='4' class='TableBodyCol'><center><b>No transaction</b></center></td> </tr>");
+                        }
+                        else {
+                            $("#orderSummary").append("<tr  class='datarow'><td class='TableBodyCol'><span>" + value.type + "</span></td>   <td class='TableBodyCol'><span>" + value.amount + "</span></td>  <td class='TableBodyCol'><span>" + value.refID + "</span></td>  <td class='TableBodyCol'><span>" + value.creationTime + "</span></td> </tr>");
+                        }
+                    });
+                    $("#ProgressIcon").hide();
+                },
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    //---------------------------
+    $(".btn").click(function () {
+        $(this).addClass('btn-primary').siblings('.btn').removeClass('btn-primary');
+        $(this).removeClass('btn-default').siblings('.btn').addClass('btn-default');
+    })
+
+    //--------------------------------------------//general wallet recharge method
+    $("#loadcashbtn").click(function () {
+        var amount = $("#txtamount").val();
+        var consumer_id = $("#hfconsumerid").val();
+        var email = $('#hfemail').val();
+        var mobile = $("#hfmobile").val();
+        var name = $("#hfusername").val();
+        $(".popupContent").empty();
+        if (amount == '') {
+            $(".popupWindowBackground").show();
+            $(".popupWindow").show();
+            $(".popupContent").append("<p>Please Enter Amount</p>");
+        }
+        else if (amount < 10) {
+            $(".popupWindowBackground").show();
+            $(".popupWindow").show();
+            $(".popupContent").append("<p>Recharge will Proceed with Amount more than Rs 10/-</p>");
+        }
+        else {
+            try {
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/Account/WalletRechargeOrderCreation",
+                    data: "{consumer_id:'" + consumer_id + "',amount:'" + amount + "',email:'" + email + "',mobile:'" + mobile + "',name:'" + name + "'}",
+                    dataType: "json",
+                    success: function (data) {
+                        $(".popupContent").empty();
+                        $.each(data, function (key, value) {
+                            if (key == 'amount') {
+                                $(".popupWindowBackground").show();
+                                $(".popupWindow").show();
+                                $(".popupContent").append("<p>Monthly Recharge Limit Exceeded Please Enter Amount less than:" + value + "</p>");
+                            }
+                            if (key == 'message') {
+                                if (value == 'MonthlyLimitExceeded') {
+                                    $(".popupWindowBackground").show();
+                                    $(".popupWindow").show();
+                                    $(".popupContent").append("<p>Monthly Recharge Limit Exceeded !</p>");
+                                }
+                            }
+                            else {
+                                var URL_Payment = data['payment_url'];
+                                window.open(URL_Payment, "_self");
+                            }
+                        });
+                    },
+                    error: function (result) {
+                        alert(result);
+                    }
+                });
+            }
+            catch (err) {
+            }
+        }
+    })
+
+    //--------------------------------------------------//voucher details method
+    $("#btnvoucherdetails").click(function () {
+        $("#BalanceAmount").text("Rs." + VouchBal + "/-");
+        $("#balancetype").text("Voucher Balance");
+        $(".WalletButton").fadeOut();
+        $(".error").empty();
+        $("#ProgressIcon").show();
+        $("#transactionDiv").fadeOut();
+        $(".orderSummary1 .datarow").remove();
+        try {
+            var Register =
+                             {
+                                 con_id: $("#hfconsumerid").val(),
+                             }
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Account/GetVoucherDetails",
+                data: JSON.stringify(Register),
+                dataType: "json",
+                success: function (data) {
+                    $("#transactionDiv").fadeOut();
+                    $("#VoucherDiv").fadeIn();
+                    if (data == '') {
+                        $("#orderSummary1").append("<tr  class='datarow'><td colspan='6' class='TableBodyCol'><center><b>No transaction</b></center></td> </tr>");
+                    }
+                    else {
+                        $.each(data, function (key, value) {
+                            $("#orderSummary1").append("<tr class='datarow'><td class='TableBodyCol'><span>" + value.voucher_id + "</span></td>   <td class='TableBodyCol'><span>" + value.voucher_amount + "</span></td>  <td class='TableBodyCol'><span>" + value.voucher_type + "</span></td>  <td class='TableBodyCol'><span>" + value.expiry_date + "</span></td> <td class='TableBodyCol'><span>" + value.narrations + "</span></td> <td class='TableBodyCol'><span>" + value.is_used + "</span></td> </tr>");
+                        });
+                    }
+                    $("#ProgressIcon").hide();
+                },
+                error: function (result) {                   
+                }
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    //------------------------ //get otp for wallet activation method
+    $("#SubmitOtpforwallet").click(function () {
+        $(".error").empty();
+        try {
+            var otptext = $("#OTPtextforwallet").val();
+            if (otptext == '') {
+                alert("Please Enter OTP");
+                return false;
+            }
+            var Register =
+                         {
+                             otptextforwallet: $("#OTPtextforwallet").val(),
+                             ConsumerId: $("#hfconsumerid").val(),
+                             Mobile: $("#hfmobile").val(),
+                             EmailId: $("#hfemail").val(),
+                             Username: $("#hfusername").val()
+                         }
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Account/ActivateWalletAc",
+                data: JSON.stringify(Register),
+                dataType: "json",
+                success: function (data) {
+                      if (data == 0) {
+                        alert("Please Enter Correct OTP");
+                    }
+                    else if (data == 2) {
+                        alert("Wallet Creation Failed.")
+                    }
+                    else {
+                        alert("Wallet activated successfully");
+                        location.reload();
+                        $("#walletDashboard").fadeIn();
+                        $("#OtpLogin").fadeOut();
+                    }
+                },
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    //------------------------    //wallet created from his wallet dashboard
+    $("#btncreateyourwallet").click(function () {
+        $(".error").empty();
+        try {
+            var Register =
+                         {
+                             mobileNo: $("#hfmobile").val(),
+                             email: $("#hfemail").val(),
+                             name_of_customer: $("#hfdfirstname").val()
+                         }
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Account/createwalletfordashboard",
+                data: JSON.stringify(Register),
+                dataType: "json",
+                success: function (data) {
+                    location.reload();
+                    $("#walletDashboard").fadeIn();
+                    $("#OtpLogin").fadeOut();
+                },
+                error: function (result) {
+                }
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    //-----------------------
+    $("#SubmitOtp").click(function () {
+     $(".popupContent").empty();
+        var Register =
+                        {
+                            FirstName: $("#FirstName").val(),
+                            LastName: $("#LastName").val(),
+                            UserName: 'abc',
+                            EmailId: $("#EmailId").val(),
+                            Mobile: $("#Mobile").val(),
+                            Password: $("#Password").val(),
+                            OTPtext: $("#OTPtext").val(),
+                            walletCheckbox: "true"
+                        }
+        $("#message").empty();
+        $("#SuccessText").empty();        
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: "/Account/Register",
+            data: JSON.stringify(Register),
+            dataType: "json",
+            success: function (data) {
+                if (data.Success == "1") {
+                    $(".popupWindowBackground").show();
+                    $(".popupWindow").show();
+                    $(".popupContent").append("<p>Congratulation! You have succesfully registered.</p>");
+
+                    setTimeout(function () {
+                        var url = referrer;
+                        window.location.href = url;
+                    }, 5000)
+                }
+                if (data.Success == "0") {
+                    $("#SuccessText").text('This user name already exist!.');
+                }
+                if (data.Success == "2") {
+                    $("#SuccessText").text('Please enter correct otp.');
+                }
+            },
+        });
+    });
+
+     //for btn resend OTP---------
+    $("#btnresendOTP").click(function () {
+        var isenabled = "true";
+        var Phone = $('#Mobile').val();
+        var username = 'abc';
+        var emailaddressVal = $('#EmailId').val();
+        $(".popupContent").empty();
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: "/Account/ConfirmOTP",
+            data: "{Phone:'" + Phone + "',email:'" + emailaddressVal + "',IsEnabled:'" + isenabled + "',username:'" + username + "'}",
+            dataType: "json",
+            success: function (data) {
+                if (data.Success > 0) {
+                    $("#OptionRegister").fadeOut();
+                    $("#OtpLogin").fadeIn();
+                    $(".popupWindowBackground").show();
+                    $(".popupWindow").show();
+                    $(".popupContent").append("<p>OTP has been resend in your mobile.</p>");
+                }
+                else {
+                    alert("Please enter your correct mobile no.");
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+            }
+        });
+    });
+
+    $("#btnGenerateOTP").click(function () {
+        $(".error").empty();
+        $(".popupContent").empty();
+        try {
+            var Register =
+                         {
+                             consumer_id: $("#hfconsumerid").val(),
+                         }
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/Account/GenerateOTPWallet",
+                data: JSON.stringify(Register),
+                dataType: "json",
+                success: function (data) {
+                    $("#walletDashboard").fadeOut();
+                    $("#OtpLogin").fadeIn();
+                    $(".popupWindowBackground").show();
+                    $(".popupWindow").show();
+                    $(".popupContent").append("<p>OTP has been resend in your mobile.</p>");
+                },
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    //-------Pay With Helpguruwallet-------------------------------
+    $("#btnPayWithHGWallet").click(function () {
+        $("#msgwallet").empty();
+        try {
+            if ($('#select_checkbox').is(':checked')) {
+                $(".check_").attr("checked", "checked");
+                var Register =
+                                 {
+                                     consumer_id: $("#hdnConsumerId").val()
+                                 }
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/User/GenerateOTPWallet",
+                    data: JSON.stringify(Register),
+                    dataType: "json",
+                    success: function (data) {
+                        $("#mainDiv").fadeOut();
+                        $("#OtpLogin").fadeIn();
+                    },
+                });
+            }
+            else {
+                $('#select_checkbox').parent('div').find(".error").text("Please accept terms and conditons");
+                return true;
+            }
+        }
+        catch (err)
+        { }
+    });
+
+     $("#btnsubmithgwallet").click(function () {
+        $(".error").empty();
+        $(".popupContent").empty();
+        try {
+            var otptext = $("#OTPhgtext").val();
+            if (otptext == '') {
+                alert("Please Enter OTP");
+                return false;
+            }
+            var Register =
+                         {
+                             ConsumerId: $("#hdnConsumerId").val(),
+                             BookingId: $("#bookingId").text(),
+                             Mobile: $("#phone").text(),
+                             transactionAmount: $("#updatedAmt").text(),
+                             EmailId: $("#emailid").text(),
+                             otptextforwallet: $("#OTPhgtext").val(),
+                             IswalletActive: $("#hdnIswalletActive").val(),
+                             FirstName: $("#hdnfirstname1").val()
+                             // merchant_refId: $("#hdnmarchrefId").val()
+                         }
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/User/PayWithHelpguruWallet",
+                data: JSON.stringify(Register),
+                dataType: "json",
+                success: function (data) {
+                    if (data == "1") {
+                        $(".popupWindowBackground").show();
+                        $(".popupWindow").show();
+                        $(".popupContent").append("<p>Transaction has been done successfully.</p>");
+                        setTimeout(function () {
+                            window.location.href = '/User/Orders';
+                        }, 5000)
+                    }
+                    else if (data == "2") {
+                        $('#OTPhgtext').val("");
+                        alert("Please Enter Correct OTP");
+                    }
+                    else {
+                        $(".popupWindowBackground").show();
+                        $(".popupWindow").show();
+                        $(".popupContent").append("<p>Transaction failed due to some technical problem.</p>");
+                        setTimeout(function () {
+                            window.location.href = '/User/Orders';
+                        }, 5000)
+                    }
+                },
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    $("#btnPaymentGenerateOTP").click(function () {
+        $("#msgwallet").empty();
+        $(".popupContent").empty();
+        try {
+            if ($('#select_checkbox').is(':checked')) {
+                $(".check_").attr("checked", "checked");
+                var Register =
+                                 {
+                                     consumer_id: $("#hdnConsumerId").val()
+                                 }
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/User/GenerateOTPWallet",
+                    data: JSON.stringify(Register),
+                    dataType: "json",
+                    success: function (data) {
+                        $("#mainDiv").fadeOut();
+                        $("#OtpLogin").fadeIn();
+                        $(".popupWindowBackground").show();
+                        $(".popupWindow").show();
+                        $(".popupContent").append("<p>OTP has been resend in your mobile.</p>");
+                    },
+                });
+            }
+            else {
+                $('#select_checkbox').parent('div').find(".error").text("Please accept terms and conditons");
+                return true;
+            }
+        }
+        catch (err)
+        { }
+    });
+
+    //-------end With Helpguruwallet-------------------------------
+
+    //----------Advance Payment with paytm,hgwallet and 
+    $("#txtamountval").on("keypress keyup blur", function (event) {
+        $(this).val($(this).val().replace(/[^\d].+/, ""));
+        if ((event.which < 48 || event.which > 57)) {
+            event.preventDefault();
+        }
+    });
+
+    $("#btnAdvancePayHGWallet").click(function () {
+        $("#msgwallet").empty();
+        try {
+            if ($('#select_checkbox').is(':checked')) {
+                $(".check_").attr("checked", "checked");
+                var Register =
+                                 {
+                                     consumer_id: $("#hdnConsumer_Id").val()
+                                 }
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/User/GenerateOTPWallet",
+                    data: JSON.stringify(Register),
+                    dataType: "json",
+                    success: function (data) {
+                        $("#mainDiv").fadeOut();
+                        $("#OtpLogin").fadeIn();
+                    },
+                });
+            }
+            else {
+                $('#select_checkbox').parent('div').find(".error").text("Please accept terms and conditons");
+                return true;
+            }
+        }
+        catch (err)
+        { }
+    });
+
+    $("#btnHGwalletSubmit").click(function () {
+        $(".error").empty();
+        $(".popupContent").empty();
+        try {
+            var otptext = $("#OTPhgtext").val();
+            if (otptext == '') {
+                alert("Please Enter OTP");
+                return false;
+            }
+            var emailid = $("#emailid").text();
+            var mobile = $("#mobileno").text();
+            var Register =
+                         {
+                             ConsumerId: $("#hdnConsumer_Id").val(),
+                             BookingId: $("#booking_id").text(),
+                             Mobile: mobile,
+                             transactionAmount: $("#txtamountval").val(),
+                             EmailId: emailid,
+                             otptextforwallet: $("#OTPhgtext").val(),
+                             IswalletActive: $("#hdnIswallet_Active").val(),
+                             FirstName: $("#hdnfirst_name").val()
+                         }
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: "/User/AdvancePayWithHGWallet",
+                data: JSON.stringify(Register),
+                dataType: "json",
+                success: function (data) {
+                    if (data == "1") {
+                        $(".popupWindowBackground").show();
+                        $(".popupWindow").show();
+                        $(".popupContent").append("<p>Transaction has been done successfully.</p>");
+                        setTimeout(function () {
+                            window.location.href = '/User/Orders';
+                        }, 5000)
+                    }
+                    else if (data == "2") {
+                        $('#OTPhgtext').val("");
+                        alert("Please Enter Correct OTP");
+                    }
+                    else {
+                        $(".popupWindowBackground").show();
+                        $(".popupWindow").show();
+                        $(".popupContent").append("<p>Transaction failed due to some technical problem.</p>");
+                        setTimeout(function () {
+                            window.location.href = '/User/Orders';
+                        }, 5000)
+                    }
+                },
+            });
+        }
+        catch (err)
+        { }
+    });
+
+    $("#btnPaymentGenerateOTPResend").click(function () {
+        $("#msgwallet").empty();
+        $(".popupContent").empty();
+        try {
+            if ($('#select_checkbox').is(':checked')) {
+                $(".check_").attr("checked", "checked");
+                var Register =
+                                 {
+                                     consumer_id: $("#hdnConsumer_Id").val()
+                                 }
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: "/User/GenerateOTPWallet",
+                    data: JSON.stringify(Register),
+                    dataType: "json",
+                    success: function (data) {
+                        $("#mainDiv").fadeOut();
+                        $("#OtpLogin").fadeIn();
+                        $(".popupWindowBackground").show();
+                        $(".popupWindow").show();
+                        $(".popupContent").append("<p>OTP has been resend in your mobile.</p>");
+                    },
+                });
+            }
+            else {
+                $('#select_checkbox').parent('div').find(".error").text("Please accept terms and conditons");
+                return true;
+            }
+        }
+        catch (err)
+        { }
+    });
+
+    //---------end with payment option---------------------------
+
+    $("#PinCode").keyup(function () {
+        var countValues = $("#PinCode").val().length;
+        if (countValues == "6") {
+            var pinCode = $("#PinCode").val();
+            var Cities = GetPostalCode(pinCode, cityname);            
+            if (cityname == Cities) {
+                GetAreasOnTheBasisOfPinCode(pinCode, cityname)
+            }
+            else {
+                $("#PinCodeerror").text("Pincode not availabe in this City.");
+                $("#AreaId").empty();
+            }
+        }
+    });
+
+    function GetAreasOnTheBasisOfPinCode(pinCode,city) {
+        var SubServiceId = $("#hdncategory").val();
+        GetArea(SubServiceId, pinCode, city)
+    }
+
+    $("#MobileApp").change(function () {
+        var selectedDeviceID = $('#MobileApp option:selected').val();
+    });
+
+    $("#btnGetApp").on('click', function () {              
+        var devicetype = $('#MobileApp option:selected').val();
+        var mobilenum = $('#mobile').text();
+        GetMobileApp(devicetype, mobilenum);
+    });
+});
+
+function GetMobileApp(devicetype, mobilenum) {   
+    $(".error").empty();   
+    var mob = /^[1-9]{1}[0-9]{9}$/;
+    if (mob.test($.trim($("#mobile").val())) == false) {
+        $("#mobile").parent("div").find(".error").append('<br/>' + '<span class="error">Enter a valid mobile number.</span>');
+        return false;
+    }    
+    var device = {
+        devicetype: $('#MobileApp option:selected').val(),
+        mobilenum: $('#mobile').val()
+    };
+    $("#message").empty();
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: "/Home/GetMobileApp",
+        data: JSON.stringify(device),
+        dataType: "json",
+        success: function (data) {
+            if (data < 1) {
+                $("#message").text("Error. Please, check the data");
+            }
+            else {
+                $("#message").text("Helpguru app link sent in your mobile");
+            }
+        }
+    });
+}
+
+function GetArea(SubServiceId, pinCode, City) {
+    $(".popupContent").empty();
+    $("#AreaId").empty();
+    var val1 = { SubServiceId: SubServiceId, pinCode: pinCode, City: City }
+    var name = $("#AreaId").attr('name');   
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: "/ShoppingCart/Getarea",
+        data:JSON.stringify(val1),
+        dataType: "json",
+        success: function (objModel) {
+            if (objModel._GetArea.length) {               
+                $("#AreaId option[value='0']").remove();
+                $("#AreaId").prepend($("<option></option>").val(0).html("--Select Area--"));
+                $.each(objModel._GetArea, function (key, value) {
+                    if (name == value.AreaId) {
+                        $("#AreaId").append($("<option selected=true></option>").val(value.AreaId).html(value.AreaName));
+                    }
+                    else {
+                        $("#AreaId").append($("<option></option>").val(value.AreaId).html(value.AreaName));
+                    }
+                });
+            }
+            else {
+                $(".popupWindowBackground").show();
+                $(".popupWindow").show();
+                 //$(".popupContent").append("<p>This service is currently not available online. Please dial our Toll Free number 1800225252 to book the service</p>");
+                $(".popupContent").append("<p>This service is currently not available online. Please Call Customer Care at 9312249648 , 9599588230 (Delhi NCR Users) & 1800-22-5252 (Mumbai Users) to book the service</p>");
+               // $("#PinCodeerror").text("Service not availabe at this PIN code. Please call Customer Care at 1800 22 5252 - to help you out");
+                $("#AreaId").prepend($("<option></option>").val(0).html("No Area Found"));
+            }
+        },
+    });
+}
+
+function GetPostalCode(pincode,city) {
+    var City = false;
+    var pincity = { pincode: pincode, city: city }
+    $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: "/ShoppingCart/Getpincodes",
+        data: JSON.stringify(pincity),
+        dataType: "json",
+        async: false,
+        success: function (data) {
+            City = data;
+        },
+        error: function (result) {
+        }
+    });
+    return City;
+}
+
+
+
+

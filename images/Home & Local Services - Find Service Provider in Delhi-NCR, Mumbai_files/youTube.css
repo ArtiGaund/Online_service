@@ -1,0 +1,290 @@
+﻿
+        .popup
+        {
+             position: absolute;
+            z-index: 2;
+           color: rgb(0, 0, 0); 
+           background-color: rgb(0, 0, 0);
+            border: 10px solid rgb(77, 77, 77); 
+            width: 650px; 
+            position: absolute; 
+            z-index: 998; left: 339.5px;
+             top: 444.5px;
+        }
+        .popup_bg
+        {
+            position: absolute;
+            visibility: hidden;
+            height: 100%;
+            width: 100%;
+            filter: alpha(opacity=90);
+            opacity: 0.4;
+            left: 0px;
+            top: 0px;
+            background-color: #999;
+           background-image:url('images/youTubeBG.png');
+            z-index: 1;
+        }
+        .ytcontainer
+        {
+            border: 2px solid #666;
+             background-color:Black;
+            clear: both;
+        }
+        .close_button
+        {
+            font-family: Verdana, Geneva, sans-serif;
+            font-size: small;
+            font-weight: bold;
+            color: #666;
+            text-decoration: none;
+            display: block;
+            float: right;
+            background-color: #FFF;
+            z-index: 3;
+            cursor: default;
+            border: 2px solid #666;
+            margin-bottom: -2px;
+            padding: 0px 3px 0px 3px;
+        }
+        
+        .mypets
+        {
+            /*header of 1st demo*/
+            cursor: hand;
+            cursor: pointer;
+            background-image:url('images/title-tail1.jpg');
+            background-repeat: repeat-x;
+           font-family: Tahoma, Verdana, Arial, "Arial Narrow";
+            font-size: 14px;
+            font-weight: bold;
+            text-align: left;
+            color: #00008B;
+            padding-left: 15px;
+            height: 31px;
+            line-height: 30px;
+            width: 660px;
+            margin-left: -4px;
+        }
+        .panel1
+        {
+            width: 648px;
+            background-color: #FFF5EE;
+            border: 1px dotted #CD96CD;
+            border-top: none;
+        }
+        dlTrailer
+{
+    height:180px;
+    border:2px solid black;
+    background-color:Black;
+    
+    
+}
+.playImage
+{
+  
+    padding:0px;
+    margin-top:-90px;
+    margin-left:40px;
+    
+
+}
+.lblName
+{
+   text-decoration:none;
+   width:80px;
+   height:30px;
+   margin-top:200px;
+   background-color:transparent;
+    
+}
+.TrailerMain
+{
+    height: 155px;
+    padding-bottom: 20px;
+    padding-top: 15px;
+    padding-left: 10px;
+    border: 10px solid #fff;
+    background-color: #E9E9E9;
+}
+.TrailerMain:hover
+{
+    background-color: #DDDDDD;
+    height: 155px;
+    padding-bottom: 20px;
+    padding-top: 15px;
+    padding-left: 10px;
+    border: 10px solid #fff;
+}
+.trailerImage
+{
+    width:126px;
+    height:100px;
+    border:1px solid gray;
+    
+    
+}
+  
+    .red
+        {
+            font-size: 12px;
+            color: #FADDDE;
+            border: solid 1px #980C10;
+            background: #D81B21;
+            background: -webkit-gradient(linear, left top, left bottom, from(#ED1C24), to(#AA1317));
+            background: -moz-linear-gradient(top, #ED1C24, #AA1317);
+            border-radius: 5px;
+        }
+        .red:hover
+        {
+            font-size: 12px;
+            color: #FADDDE;
+            border: solid 1px #980C10;
+            background: #D81C21;
+            background: -webkit-gradient(linear, left top, left bottom, from(#ED1C24), to(maroon));
+            background: -moz-linear-gradient(top, #ED1C24,maroon);
+            border-radius: 5px;
+        }
+        #modalPageMovietiming
+        {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0px;
+            left: 0px;
+        }
+        .modalBackgroundMovietiming
+        {
+            filter: Alpha(Opacity=40);
+            -moz-opacity: 0.4;
+            opacity: 0.4;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            position: absolute;
+            z-index: 20;
+            top: 0px;
+            left: 0px;
+        }
+        .modalContainerMovietiming
+        {
+            position: absolute;
+            width: 300px;
+            left: 50%;
+            top: 50%;
+            z-index: 20;
+        }
+        .modalMovietiming
+        {
+            background-color: white;
+            border: solid 4px Maroon;
+            position: relative;
+            top: -150px;
+            left: -300px;
+            z-index: 100;
+            width: 650px;
+            background-color: #fff;
+            border-radius: 10px 10px 10px 10px;
+            padding-bottom: 20px;
+        }
+        .modalTopMovietiming
+        {
+            width: auto;
+            height: 20px;
+            color: #ffffff;
+            text-align: center;
+            padding-top: 10px;
+            padding-left: 10px;
+        }
+        .modalTopMovietiming a, .modalTopMovietiming a:visited
+        {
+            color: #ffffff;
+        }
+        .modalBodyMovietiming
+        {
+            width: 300px;
+            padding-top: 10px;
+            padding-left: 50px;
+        }
+        .modalBodySideMovietiming
+        {
+            height: 140px;
+            float: right;
+            width: 300px;
+            border-left: 1px solid gray;
+            padding-left: 10px;
+        }
+        .movietiming
+        {
+            background: -webkit-gradient(linear, bottom,);
+            position: relative;
+            width: 895px;
+            padding: 3px 4px 3px 4px;
+            height: 50px;
+            -webkit-border-radius: 20px;
+            -moz-border-radius: 20px;
+            border-radius: 5px;
+            border-style: solid;
+            border-width: 4px;
+            border-color: #F1EDEA;
+            background-color: #FFFFFF;
+            margin-bottom: 10px;
+            box-shadow: 2px 3px 8p;
+        }
+        #dhtmltooltip
+        {
+            position: absolute;
+            left: -300px;
+            width: 120px;
+            padding: 2px;
+            visibility: hidden;
+            border-radius: 3px;
+            z-index: 100; /*Remove below line to remove shadow. Below line should always appear last within this CSS*/
+            filter: progid:DXImageTransform.Microsoft.Shadow(color=gray,direction=135);
+            border: 1px solid maroon;
+            background-color: white;
+            box-shadow: 1px 1px 5px rgba(0, 0, 0, 1);
+        }
+        
+        #dhtmlpointer
+        {
+            position: absolute;
+            left: -300px;
+            z-index: 101;
+            visibility: hidden;
+        }
+        .movietiming111
+        {
+            background: -webkit-gradient(linear, bottom, left 175px, from(#CCCCCC), to(#EEEEEE));
+            background: -moz-linear-gradient(bottom, #CCCCCC, #EEEEEE 175px);
+            margin: auto;
+            position: relative;
+            width: 895px;
+            font-family: Tahoma, Geneva, sans-serif;
+            font-size: 13px;
+            line-height: 24px;
+            text-decoration: none;
+            -webkit-border-radius: 10px;
+            -moz-border-radius: 10px;
+            border-radius: 1px;
+            border: 2px solid #999;
+            -webkit-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+            -moz-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 1px 2px 8p;
+        }
+        .ddl
+        {
+            padding-left: 35px;
+            height: 10px;
+        }
+       
+        .ddrg11
+        {
+            background: white url(http://content.bookmyshow.com/in/common/v-drop-bg.gif) no-repeat scroll top left;
+            width: 265px;
+            padding: 5px 0 0 10px;
+            height: 25px;
+            cursor: pointer;
+        }

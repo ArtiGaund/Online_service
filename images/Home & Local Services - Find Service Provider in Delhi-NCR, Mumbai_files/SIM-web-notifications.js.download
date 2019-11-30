@@ -1,0 +1,655 @@
+var SIM_SERVICE_WORKER_URL = 'SIM-service-worker.js';
+var SIM_DEFAULT_IMAGE = 'Images/logo.png';
+var SIM_DEFAULT_TITLE = 'Helpguru';
+var SIM_PLATFORM_CHROME = '2';
+var SIM_PLATFORM_SAFARI = '3';
+var SIM_PLATFORM_FIREFOX = '4';
+
+var SIM_Base = function()
+{
+	this.APPLICATION_CODE = "b455660b0831a98c2fd235999b211f11"; // Your App's ShipitKey from ShipitMobi
+	this.SIM_Url = "https://api.shipit.mobi/RestApi";
+	this.WEBSITE_UID = 'YYYY';
+};
+
+SIM_Base.prototype.SIM_GetDeviceName = function ()
+{
+	if (navigator.userAgent.match(/Android/i)
+		|| navigator.userAgent.match(/webOS/i)
+		|| navigator.userAgent.match(/iPhone/i)
+		|| navigator.userAgent.match(/iPad/i)
+		|| navigator.userAgent.match(/iPod/i)
+		|| navigator.userAgent.match(/BlackBerry/i)
+		|| navigator.userAgent.match(/Windows Phone/i)
+	) {
+		return 'Phone';
+	}
+	else {
+		return 'PC';
+	}
+};
+
+/**
+ * Call ShipitMobi getDate method
+ * @param {Date} givenDate
+ */
+SIM_Base.prototype.SIM_getDate = function (givenDate){
+	var month = givenDate.getMonth()+1;
+	var day = givenDate.getDate();
+	return givenDate.getFullYear() + '-' + (month<10 ? '0' : '') + month + '-' + (day<10 ? '0' : '') + day + 'T00:00:00Z';
+};
+
+/**
+ * Call ShipitMobi registerDevice API method
+ * @param {string} pushToken
+ */
+SIM_Base.prototype.SIM_RegisterDevice = function (pushToken, channelID, encryptionKey, authKey)
+{
+	this.doSIMApiMethod('registerDevice',
+		{
+			"shipitAppKey": this.APPLICATION_CODE,
+			"devToken": pushToken,
+			"channelID": channelID,
+			"platformType": SIM_getBrowserType(),
+			"installDate": this.SIM_getDate(new Date()),
+			"timeZoneID": (new Date).getTimezoneOffset(),
+			"reqState": 0,
+			"browserVer": getBrowserVersion(),
+			"publicKey": encryptionKey,
+			"authKey": authKey
+		}
+	);
+};
+
+/**
+ * Determine device type
+ * @returns {number}
+ */
+function SIM_getBrowserType() {
+
+	if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1)
+		return SIM_PLATFORM_FIREFOX;
+	else if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1)
+		return SIM_PLATFORM_CHROME;
+	else if (navigator.userAgent.toLowerCase().indexOf('safari') > -1)
+		return SIM_PLATFORM_SAFARI;
+	return 0;
+}
+
+function getBrowserVersion()
+{
+	var ua = navigator.userAgent, tem,
+		M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+
+	if (/trident/i.test(M[1]))
+	{
+		tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+		return 'IE ' + (tem[1] || '');
+	}
+
+	if (M[1] === 'Chrome')
+	{
+		tem = ua.match(/\bOPR\/(\d+)/);
+		if (tem != null) return 'Opera ' + tem[1];
+	}
+
+	M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
+	if ((tem = ua.match(/version\/([.\d]+)/i)) != null)
+		M.splice(1, 1, tem[1]);
+
+	if((M[0] === 'Chrome') || (M[0] === 'Firefox') )
+	{
+		return M[1];
+	}
+	return M.join(' ');
+}
+
+
+/**
+ * Call unregisterDevice API method
+ * @param {string} channelID
+ */
+SIM_Base.prototype.SIM_UnregisterDevice = function (channelID)
+{
+	this.doSIMApiMethod('unregisterDevice',
+	{
+		shipitAppKey: this.APPLICATION_CODE,
+		channelID: channelID,
+		platformType: SIM_getBrowserType()
+	});
+};
+
+/**
+ * Call setTags API method
+ * @param {string} channelID
+ * @param {Object} tags
+ */
+SIM_Base.prototype.SIM_SetTags = function (channelID, tags)
+{
+	this.doSIMApiMethod('setTags',
+	{
+		shipitAppKey: this.APPLICATION_CODE,
+		channelID: channelID,
+		tags: tags,
+		platformType: SIM_getBrowserType()
+	});
+};
+
+/**
+ * Call SIM RestAPI method
+ * @param {string} methodName
+ * @param {Object} arguments
+ */
+SIM_Base.prototype.doSIMApiMethod = function (methodName, arguments)
+{
+	console.log('Performing %s call to ShipitMobi with arguments: %s', methodName, JSON.stringify(arguments));
+	try
+	{
+		var xhr = new XMLHttpRequest(),
+			url = this.SIM_Url + '/' +  methodName,
+			params =
+			{
+				request: arguments
+			};
+		
+		xhr.open('POST', url, true);
+		xhr.setRequestHeader('Content-Type', 'text/plain;charset=UTF-8');
+		xhr.send(JSON.stringify(arguments));
+		xhr.onload = function ()
+		{
+			if (this.status == 200){
+				var response = JSON.parse(this.responseText);
+				if (response.Code == 200){
+					console.log(methodName + ' call to ShipitMobi has been successful');
+				}
+				else{
+					console.log('Error occurred during the ' + response.Message +' call to ShipitMobi ');
+				}
+			}else{
+				console.log('Error occurred, status code: ' + this.Code);
+			}
+		};
+		xhr.onerror = function ()
+		{
+			console.log('ShipitMobi response status code to %s call in not 200', methodName)
+		};
+	} catch (e)
+	{
+		console.log('Exception while %s the device: %s', methodName, e);
+	}
+};
+
+SIM_Base.prototype.createUUID = function (pushToken)
+{
+        var s = [];
+        var hexDigits = "0123456789abcdef";
+        for (var i = 0; i < 32; i++)
+        {
+                var charCode = "0";
+                if(pushToken.length - i - 1 >= 0)
+                {
+                        charCode = pushToken.charCodeAt(pushToken.length - i - 1);
+                }
+
+                s[i] = hexDigits.substr(charCode % hexDigits.length, 1);
+        }
+        return s.join("");
+};
+
+SIM_Base.prototype.generateChannelID = function (pushToken)
+{
+	var channelID = this.createUUID(pushToken);
+	return channelID;
+};
+
+SIM_Base.prototype.GenerateNotification = function (isSafari){
+
+	var title = 'Welcome onboard';
+	var body = "Thank you for registering for push notification";
+	var notification;
+	if(!isSafari)
+	{
+		notification = new Notification(title, {
+			icon: SIM_DEFAULT_IMAGE,
+			body: body,
+		});
+	}
+	else
+	{
+		notification = new Notification(title, {
+			body: body,
+			tag: Math.random(),
+		});
+	}
+	notification.onclick = function () {
+		this.close();
+		window.open(window.location.href);
+	};
+};
+
+var SIM_Chrome = function()
+{
+	SIM_Base.call(this);
+	this.SERVICE_WORKER_URL = SIM_SERVICE_WORKER_URL;
+	this.channelID = "";
+};
+
+SIM_Chrome.prototype = Object.create(SIM_Base.prototype);
+SIM_Chrome.prototype.constructor = SIM_Chrome;
+
+SIM_Chrome.prototype.registerServiceWorker = function(serviceWorkerRegistration)
+{
+	//NOTE: window must has SIMInstance var.
+	var self = SIMInstance;
+
+	// Are Notifications supported in the service worker?
+	if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
+		console.log('Notifications aren\'t supported.');
+		return;
+	}
+
+	// Check the current Notification permission.
+	// If its denied, it's a permanent block until the
+	// user changes the permission
+	if (Notification.permission === 'denied') {
+		console.log('The user has blocked notifications.');
+		return;
+	}
+
+	// Check if push messaging is supported
+	if (!('PushManager' in window)) {
+		console.log('Push messaging isn\'t supported.');
+		return;
+	}
+
+	serviceWorkerRegistration.pushManager.getSubscription().
+	then(function (subscription)
+	{
+		// Enable any UI which subscribes / unsubscribes from push messages.
+		if (!subscription)
+		{
+			// subscribe for push notifications
+			serviceWorkerRegistration.pushManager.subscribe(
+			{
+				name: 'push',
+				userVisibleOnly: true
+			}).
+			then(function (subscription)
+			{
+				// The subscription was successful
+				pushToken = self.getPushToken(subscription);
+				self.channelID = self.generateChannelID(pushToken);
+				var encryptionKey = self.getEncryptionKey(subscription);
+				var authKey = self.getAuthKey(subscription);
+				self.SIM_RegisterDevice(pushToken, self.channelID, encryptionKey, authKey);
+				localStorage.setItem('SIMAllowPushNotifications', true);
+				self.GenerateNotification(false);
+			}).catch(function (e)
+			{
+				if (Notification.permission === 'denied')
+				{
+					// The user denied the notification permission which
+					// means we failed to subscribe and the user will need
+					// to manually change the notification permission to
+					// subscribe to push messages
+					console.log('Permission for Notifications was denied');
+				} else
+				{
+					// A problem occurred with the subscription; common reasons
+					// include network errors, and lacking gcm_sender_id and/or
+					// gcm_user_visible_only in the manifest.
+					console.log('Unable to subscribe to push.', e);
+				}
+			});
+			return;
+		}
+
+		// Keep your server in sync with the latest channelID/pushToken/encryptionKey
+		var pushToken = self.getPushToken(subscription);
+		self.channelID = self.generateChannelID(pushToken);
+		var encryptionKey = self.getEncryptionKey(subscription);
+		var authKey = self.getAuthKey(subscription);
+		// Set your UI to show they have subscribed for push messages. This line of code below should be disabled in production.
+	        // self.SIM_RegisterDevice(pushToken, self.channelID, encryptionKey, authKey);
+
+		console.log("Ready to get pushes. Push token is " + pushToken + "; Encryption Key is " + encryptionKey + "; authKey" + authKey + "; ChannelID is " + self.channelID);
+	}).catch(function (err)
+	{
+		console.log('Error during getSubscription()', err);
+	});
+};
+
+SIM_Chrome.prototype.subscribe = function()
+{
+	// Check that service workers are supported, if so, progressively
+	// enhance and add push messaging support, otherwise continue without it.
+	if (!('serviceWorker' in navigator))
+	{
+		console.log('Service workers aren\'t supported in this browser.');
+		return;
+	}
+
+	navigator.serviceWorker.register(this.SERVICE_WORKER_URL).
+	then( this.registerServiceWorker ).
+	catch(function (err)
+	{
+		console.log('Error while service worker registration', err);
+	});
+};
+
+SIM_Chrome.prototype.unsubscribe = function ()
+{
+	var self = this;
+	navigator.serviceWorker.ready.then(function (serviceWorkerRegistration)
+	{
+		// To unsubscribe from push messaging, you need get the
+		// subscription object, which you can call unsubscribe() on.
+		serviceWorkerRegistration.pushManager.getSubscription().
+		then(function (pushSubscription)
+		{
+			// Check we have a subscription to unsubscribe
+			if (!pushSubscription)
+			{
+				// No subscription object, so set the state
+				// to allow the user to subscribe to push
+				return;
+			}
+
+			var pushToken = self.getPushToken(pushSubscription);
+			// We have a subscription, so call unsubscribe on it
+			pushSubscription.unsubscribe().
+			then(function (successful)
+			{
+				self.SIM_UnregisterDevice(self.generateChannelID(pushToken));
+				localStorage.removeItem('SIMAllowPushNotifications');
+			}).
+			catch(function (e)
+			{
+				// We failed to unsubscribe, this can lead to
+				// an unusual state, so may be best to remove
+				// the users data from your data store and
+				// inform the user that you have done so
+				console.log('Unsubscription error: ', e);
+			});
+		}).catch(function (e)
+		{
+			console.error('Error thrown while unsubscribing from push messaging.', e);
+		});
+	});
+};
+
+SIM_Chrome.prototype.setTags = function (tags)
+{
+	var self = this;
+	navigator.serviceWorker.ready.then(function (serviceWorkerRegistration)
+	{
+		serviceWorkerRegistration.pushManager.getSubscription().
+		then(function (pushSubscription)
+		{
+			if (!pushSubscription)
+			{
+				return;
+			}
+
+			var pushToken = self.getPushToken(pushSubscription);
+			self.channelID = self.generateChannelID(pushToken);
+			self.SIM_SetTags(self.channelID, tags);
+		}).catch(function (e)
+		{
+			console.error('Error thrown while setTags from push messaging.', e);
+		});
+	});
+};
+/*
+SIM_Chrome.prototype.createUUID = function (pushToken)
+{
+	var s = [];
+	var hexDigits = "0123456789abcdef";
+	for (var i = 0; i < 32; i++)
+	{
+		var charCode = "0";
+		if(pushToken.length - i - 1 >= 0)
+		{
+			charCode = pushToken.charCodeAt(pushToken.length - i - 1);
+		}
+
+		s[i] = hexDigits.substr(charCode % hexDigits.length, 1);
+	}
+	return s.join("");
+};
+
+SIM_Chrome.prototype.generateChannelID = function (pushToken)
+{
+	var channelID = this.createUUID(pushToken);
+	return channelID;
+};
+*/
+SIM_Chrome.prototype.getEncryptionKey = function (pushSubscription)
+{
+	var rawKey = pushSubscription.getKey ? pushSubscription.getKey('p256dh') : '';
+	var key = rawKey ? btoa(String.fromCharCode.apply(null, new Uint8Array(rawKey))) : '';
+	return key;
+};
+
+SIM_Chrome.prototype.getAuthKey = function (pushSubscription)
+{
+	var rawAuthSecret = pushSubscription.getKey ? pushSubscription.getKey('auth') : '';
+	authSecret = rawAuthSecret ? btoa(String.fromCharCode.apply(null, new Uint8Array(rawAuthSecret))) :  '';
+	return authSecret;
+};
+
+SIM_Chrome.prototype.getPushToken = function (pushSubscription)
+{
+	var pushToken = '';
+	if (pushSubscription.subscriptionId)
+	{
+		pushToken = pushSubscription.subscriptionId;
+		console.log("Chrome 42, 43, 44: " + pushToken);
+	}
+	else if (SIM_getBrowserType() === SIM_PLATFORM_FIREFOX)
+	{
+		pushToken = pushSubscription.endpoint.split('/').pop();
+		console.log("Firefox: " + pushToken);
+	}
+	else
+	{
+		pushToken = pushSubscription.endpoint.split('/').pop();
+		console.log("Chrome 45+: " + pushToken);
+	}
+
+	return pushToken;
+};
+
+var SIM_Safari = function()
+{
+        SIM_Base.call(this);
+        this.channelID = "";
+};
+SIM_Safari.prototype = Object.create(SIM_Base.prototype);
+SIM_Safari.prototype.constructor = SIM_Safari;
+
+SIM_Safari.prototype.subscribe = function(){
+	"use strict";
+	var pResult = window.safari.pushNotification.permission(this.WEBSITE_UID);
+	if(pResult.permission === 'default') {
+		this.requestPermissions();
+	}
+	else if(pResult.permission === 'granted') {
+		token = pResult.deviceToken;
+		var self = SIMInstance;
+		self.channelID = self.generateChannelID(token);
+		self.SIM_RegisterDevice(token, self.channelID, SIM_PLATFORM_SAFARI);
+		localStorage.setItem('SIMAllowPushNotifications', true);
+		self.GenerateNotification(true);
+	}
+	else if(pResult.permission === 'denied') {
+		console.log("Denied:SIM_SUBS");
+	}
+	return pResult;
+};
+
+
+SIM_Safari.prototype.requestPermissions = function () {
+	window.safari.pushNotification.requestPermission(this.SIM_Url, this.WEBSITE_UID, {'shipitAppKey':this.APPLICATION_CODE}, function(c) {
+		if(c.permission === 'granted') {
+			token = c.deviceToken;
+			var self = SIMInstance;
+			self.channelID = self.generateChannelID(token);
+			self.SIM_RegisterDevice(token, self.channelID, SIM_PLATFORM_SAFARI);
+			localStorage.setItem('SIMAllowPushNotifications', true);
+			self.GenerateNotification(true);
+			console.log("Granted:req_permiss");
+		}
+		else if(c.permission === 'denied') {
+			console.log("Denied:req_permiss");
+		}
+		return c.permission;
+	});
+
+
+};
+
+SIM_Safari.prototype.setTags = function (tags)
+{
+    'use strict';
+	var self = this;
+	var pResult = window.safari.pushNotification.permission(this.WEBSITE_UID);
+	console.log(pResult);
+	if (!pResult.deviceToken)
+	   return;
+	var pushToken = pResult.deviceToken;
+	self.channelID = self.generateChannelID(pushToken);
+	self.SIM_SetTags(self.channelID, tags);
+};
+
+function SIM_CanUseServiceWorkers()
+{
+	if (!navigator || !navigator.serviceWorker)
+		return false;
+	return true;
+}
+
+var SIMInstance = null;
+
+if(SIM_CanUseServiceWorkers())
+{
+	SIMInstance = new SIM_Chrome();
+} else if (SIM_getBrowserType() == SIM_PLATFORM_SAFARI) {
+    SIMInstance = new SIM_Safari();
+} else
+	exit();
+
+if(SIMInstance)
+{
+	//SIM_SetTags([['SIM_TRAIL', window.location.href]]);
+}
+
+function SIM_Browser()
+{
+	var browser = SIM_getBrowserType();
+	if(browser == SIM_PLATFORM_FIREFOX)
+	{
+		var version = getBrowserVersion();
+		if(version >=46)
+			return true;
+	}
+	else if(browser == SIM_PLATFORM_CHROME)
+	{
+		var version = getBrowserVersion();
+		if(version >=44)
+			return true;
+	}
+	else if(browser == SIM_PLATFORM_SAFARI)
+	{
+		if(!'Notification' in window) {
+			return false;
+		}
+		return true;
+	}
+	return false;
+}
+
+function SIM_Subscribe ()
+{
+	if(!SIMInstance)
+		return;
+
+	SIMInstance.subscribe();
+}
+
+function SIM_isSubscribedForPushNotifications() {
+	return localStorage.getItem('SIMAllowPushNotifications');
+}
+
+function SIM_Unsubscribe ()
+{
+	if(!SIMInstance)
+		return;
+
+	SIMInstance.unsubscribe();
+}
+
+function SIM_findDataType(data)
+{
+	if(typeof data == "string")
+		return 3;
+	if(typeof data == "number")
+		return 2;
+	if(data instanceof Date)
+		return 1;
+	if(typeof data == "boolean")
+		return 5;
+	return 0;
+}
+
+function SIM_SetTags(tags)
+{
+	if(!SIMInstance)
+		return;
+
+	if((tags == undefined) || (tags.constructor !== Array) || !tags.length)
+	{
+		console.log('Must be array ' + tags);
+		return;
+	}
+	
+	var type = 0;
+	for(var i=0; i< tags.length; i++)
+	{
+		if(tags[i].constructor !== Array) 
+		{
+			if(i > 0)
+			{
+				console.log('Must be array of array ' + tags);
+				return;
+			}
+			else
+			{
+				if(!(type = SIM_findDataType(tags[1])))
+				{
+					console.log('Incorrect tag data ' + tags[1]);
+					return;
+				}
+				if(type == 1)
+					tags[2] = SIMInstance.SIM_getDate(tags[1])
+				else
+					tags[2] = tags[1];
+				tags[1] = type;
+				tags = [tags];
+				break;
+			}
+		}
+		if(!(type = SIM_findDataType(tags[i][1])))
+		{
+			console.log('Incorrect tag type ' + tags[1]);
+			return;
+		}
+		if(type == 1)
+			tags[i][2] = SIMInstance.SIM_getDate(tags[i][1])
+		else
+			tags[i][2] = tags[i][1];
+		tags[i][1] = type;
+	}
+
+	SIMInstance.setTags(tags);
+}
